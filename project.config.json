@@ -1,0 +1,29 @@
+{
+  "description": "frontend for cook-order",
+  "setting": {
+    "urlCheck": true,
+    "es6": false,
+    "postcss": false,
+    "minified": false,
+    "babelSetting": {
+      "ignore": [],
+      "disablePlugins": [],
+      "outputPath": ""
+    }
+  },
+  "compileType": "miniprogram",
+  "appid": "wxca98936750d453f4",
+  "projectname": "cook-order-front-end",
+  "miniprogramRoot": "weapp/",
+  "libVersion": "3.3.2",
+  "srcMiniprogramRoot": "weapp/",
+  "packOptions": {
+    "ignore": [],
+    "include": []
+  },
+  "condition": {},
+  "editorSetting": {
+    "tabIndent": "insertSpaces",
+    "tabSize": 2
+  }
+}

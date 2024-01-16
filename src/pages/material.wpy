@@ -1,0 +1,11 @@
+<template>
+  <view class="container">
+    材料箱列表
+  </view>
+</template>
+
+<script>
+  import wepy from '@wepy/core'
+
+  wepy.page({})
+</script>

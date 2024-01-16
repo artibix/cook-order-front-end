@@ -1,0 +1,11 @@
+<template>
+  <view class="container">
+    菜谱列表
+  </view>
+</template>
+
+<script>
+  import wepy from '@wepy/core'
+
+  wepy.page({})
+</script>
