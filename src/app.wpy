@@ -1,11 +1,7 @@
 <style lang="less">
-.container {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
+@import (css) './assets/style/app.wxss';
+.page{
+  background-color: #FFFFFF;
 }
 </style>
 
@@ -13,13 +9,18 @@
 import wepy from '@wepy/core';
 import eventHub from './common/eventHub';
 import vuex from '@wepy/x';
+import promisify  from '@wepy/use-promisify'
 
-wepy.use(vuex);
+wepy.use(vuex)
+wepy.use(promisify)
 
 
 wepy.app({
   
   onLaunch() {
+    wepy.wx.login().then(res => {
+      console.log('login: ', res)
+    })
   },
 
   methods: {
@@ -33,6 +34,8 @@ wepy.app({
       'pages/meau',
       'pages/material',
       'pages/user',
+      'pages/auth/login',
+      'pages/auth/register'
     ],
     window: {
       backgroundTextStyle: 'light',

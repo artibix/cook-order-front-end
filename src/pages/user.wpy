@@ -1,11 +1,61 @@
 <template>
-  <view class="container">
-    首页话题列表
-  </view>
+<div class="page">
+  <div class="page__bd">
+    <div class="weui-panel weui-panel_access">
+      <div class="weui-panel__hd" v-if="isLoggedIn">
+        已登录 name: {{ user.name }}
+       <button type="warn" v-on:click="logout">退出登录</button>
+      </div>
+      <div v-else>
+        <div class="weui-panel__hd">
+         <button type="primary" @tap="login">自动登录</button>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>
 </template>
-
+<config>
+  {
+    navigationBarTitleText: '个人中心',
+  }
+</config>
 <script>
   import wepy from '@wepy/core'
+  import store from '@/store'
+  import { mapGetters } from '@wepy/x'
 
-  wepy.page({})
+  wepy.page({
+    store,
+    computed: {
+      ...mapGetters(['user','isLoggedIn'])
+    },
+    methods: {
+      // 退出
+      async logout () {
+        try {
+          await this.$store.dispatch('logout')
+        } catch (err) {}
+      },
+
+      async login () {
+        try {
+          await this.$store.dispatch('login')
+        } catch (err) {
+          console.log(err.response.data.message)
+          if (err.response.statusCode === 403) {
+            wx.showModal({
+              title: '提示',
+              content: '您还未注册，请先注册。3秒后自动跳转注册页面'
+            })
+            setTimeout(function () {
+              wx.navigateTo({
+                url: '/pages/auth/register'
+              });
+            }, 3000);
+          }
+        }
+      }
+    }
+  })
 </script>
