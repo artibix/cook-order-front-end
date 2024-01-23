@@ -70,6 +70,7 @@
   show-action
   bind:search="search"
   bind:cancel="searchCancel"
+  bind:change="search"
 />
 
 <div class="classify">
@@ -122,6 +123,7 @@ wepy.page({
     ...mapMutations(['setCuisineList']),
     search (e) {
       let searchString = e.$wx.detail
+      console.log(searchString)
       if (searchString === '')
         this.setCuisineList(this.cuisineListBak)
       let cuisineList = this.cuisineList.map(cuisine => {
