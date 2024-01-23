@@ -1,11 +1,162 @@
+<style lang="less">
+.classify {
+  display: flex;
+  position: relative;
+  .classify_catetory {
+    width: 200rpx;
+    position: relative;
+    z-index: 1;
+    .name {
+      text-align: center;
+      height: 100rpx;
+      line-height: 100rpx;
+      font-size: 28rpx;
+      color: #666;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+    .active {
+      border-left: 6rpx solid #ff6a3c;
+      background: #fff;
+      color: #ff6a3c;
+    }
+  }
+  .classify_detail {
+    position: relative;
+    z-index: 999;
+    // margin-left: -15rpx;
+    background: #fff;
+    padding: 15px 10px 10px 30px;
+    .classify_item {
+    }
+    .title {
+      font-size: 30rpx;
+      color: #333;
+      margin-left: 25rpx;
+    }
+    .children {
+      display: flex;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      margin: 20rpx 0rpx;
+    }
+    .child_image {
+      width: 60px;
+      height: 60px;
+    }
+    .child_name {
+      font-size: 26rpx;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 170rpx;
+    }
+    .children_item {
+      height: 200rpx;
+      width: 170rpx;
+      text-align: center;
+    }
+  }
+}
+</style>
+
 <template>
-  <view class="container">
-    菜谱列表
-  </view>
+
+<van-search
+  value="{{ value }}"
+  placeholder="请输入搜索关键词"
+  show-action
+  bind:search="search"
+  bind:cancel="searchCancel"
+/>
+
+<div class="classify">
+  <scroll-div class="classify_catetory" scroll-y scroll-with-animation="true">
+    <div class="name" :class="{ 'active': cuisine.active }" v-for="(cuisine, idx) in cuisineList" @tap="selectCuisine" id="{{idx}}">
+      {{cuisine.name}}
+    </div>
+  </scroll-div>
+  <scroll-div class="classify_detail" scroll-y scroll-with-animation="true">
+      <div class="children">
+        <!-- TODO：配置URL -->
+        <navigator hover-class="none" class="children_item" v-for="(recipe, idx) in showRecipeList">
+          <image class="child_image" src="{{recipe.image_url}}"></image>
+          <div class="child_name">{{recipe.name}}</div>
+        </navigator>
+      </div>
+  </scroll-div>
+</div>
+
+
 </template>
 
-<script>
-  import wepy from '@wepy/core'
 
-  wepy.page({})
+<script>
+import wepy from '@wepy/core';
+import store from '@/store'
+import { mapMutations, mapGetters } from '@wepy/x'
+
+wepy.page({
+  data: {
+    value: '',
+    // 搜索时保留原来的菜谱数据
+    cuisineListBak: []
+  },
+  store,
+  computed: {
+    ...mapGetters(['cuisineList','showRecipeList'])
+  },
+
+  async onLoad() {
+    try {
+      await this.$store.dispatch('initCuisine')
+      this.cuisineListBak = this.cuisineList.slice()
+    } catch (err) {
+      console.error(err)
+    }
+  },
+
+  methods: {
+    ...mapMutations(['setCuisineList']),
+    search (e) {
+      let searchString = e.$wx.detail
+      if (searchString === '')
+        this.setCuisineList(this.cuisineListBak)
+      let cuisineList = this.cuisineList.map(cuisine => {
+        // 使用扩展运算符创建 recipes 的浅拷贝
+        let recipes = [...cuisine.recipes].filter(recipe => recipe.name.includes(searchString));
+        return { ...cuisine, recipes };
+      })
+      this.setCuisineList(cuisineList)
+    },
+    searchCancel () {
+      this.setCuisineList(this.cuisineListBak)
+    },
+    selectCuisine(e) {
+      const index = e.currentTarget.id;
+
+      // 先将所有元素的 active 设置为 false
+      this.cuisineList.forEach((cuisine, i) => {
+        this.$set(this.cuisineList, i, { ...cuisine, active: false });
+      });
+
+      // 再将指定元素的 active 设置为 true
+      this.$set(this.cuisineList, index, { ...this.cuisineList[index], active: true });
+
+      // 设置显示的菜谱
+      // this.setShowRecipeList(this.cuisineList[index].recipes)
+    },
+  },
+
+})
 </script>
+
+<config>
+{
+  "usingComponents": {
+    "van-search": "module:vant-weapp/dist/search/index"
+  }
+}
+</config>

@@ -974,6 +974,11 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
+"@vant/weapp@^1.11.4":
+  version "1.11.4"
+  resolved "https://registry.npmjs.org/@vant/weapp/-/weapp-1.11.4.tgz"
+  integrity sha512-egOsWO4hVMP1SQSqQ46jy8UD3WysvlnUecRzPM21Y3ovkOFZ6wlaO7oHQmTXRpwr+V41Qri1qEbtNjhVxFqdyw==
+
 "@vue/compiler-sfc@2.7.16":
   version "2.7.16"
   resolved "https://registry.npmjs.org/@vue/compiler-sfc/-/compiler-sfc-2.7.16.tgz"
@@ -992,7 +997,7 @@
   dependencies:
     "@babel/helper-module-imports" "^7.0.0"
 
-"@wepy/cli@^2.0.0-alpha.28":
+"@wepy/cli@^2.1.0":
   version "2.1.0"
   resolved "https://registry.npmjs.org/@wepy/cli/-/cli-2.1.0.tgz"
   integrity sha512-Ko6a4QeYgM6ztdVnU4kKQ/SQHPVTQ0SglsX31dN9JMkKWJrVSSApdbeFEaoUNKgGAxT+/EojYsj00LrESKLRLw==
@@ -5073,6 +5078,11 @@ validate-npm-package-name@^3.0.0:
   integrity sha512-M6w37eVCMMouJ9V/sdPGnC5H4uDr73/+xdq0FBLO3TFFX1+7wiUY6Es328NN+y43tmY+doUdN9g9J21vqB7iLw==
   dependencies:
     builtins "^1.0.3"
+
+vant-weapp@^0.5.29:
+  version "0.5.29"
+  resolved "https://registry.npmjs.org/vant-weapp/-/vant-weapp-0.5.29.tgz"
+  integrity sha512-RMc0Ga914XFwspw2WuOMU8bOHlIkua8X1DoQ/KPnGQzjwT1uEL4S7W186EmaHF1wN2krB9BVd0LdRRt39dGh6Q==
 
 verror@1.10.0:
   version "1.10.0"

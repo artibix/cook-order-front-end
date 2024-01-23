@@ -3,6 +3,8 @@ import * as auth from '@/utils/auth'
 import isEmpty from 'lodash/isEmpty'
 import { getCurrentUser } from '@/api/user'
 import { login, logout, refresh, register } from '@/api/auth'
+
+
 const getDefaultState = () => {
   return {
     user: auth.getUser(),
