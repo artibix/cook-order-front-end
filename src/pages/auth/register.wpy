@@ -127,6 +127,12 @@
     onReady(){
       this.initValidator()
     },
+    onLaunch(){
+      wx.showModal({
+        title: '提示',
+        content: '您还未注册，请先注册'
+      })
+    },
     methods: {
       initValidator(){
         this.phoneValidatorInstance = new WeValidator({

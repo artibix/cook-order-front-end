@@ -42,20 +42,15 @@
         try {
           await this.$store.dispatch('login')
         } catch (err) {
-          console.log(err.response.data.message)
-          if (err.response.statusCode === 403) {
-            wx.showModal({
-              title: '提示',
-              content: '您还未注册，请先注册。3秒后自动跳转注册页面'
-            })
+          if (err.response.statusCode === 403)
             setTimeout(function () {
               wx.navigateTo({
                 url: '/pages/auth/register'
               });
             }, 3000);
-          }
         }
-      }
+      },
+
     }
   })
 </script>
