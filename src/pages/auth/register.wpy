@@ -15,7 +15,7 @@
 
     <div class="weui-toptips weui-toptips_warn" v-if="errorMessage">{{ errorMessage }}</div>
 
-    <div class="weui-cells__title">Larabbs 手机注册</div>
+    <div class="weui-cells__title">手机注册</div>
 
     <div class="weui-cells__title {{ errors.phone ? 'weui-cell_warn' : ''}}">手机号</div>
     <div class="weui-cells weui-cells_after-title">
@@ -45,33 +45,6 @@
     </div>
     <div v-if="errors.verification_code" class="weui-cells__tips error-message">{{ errors.verification_code[0] }}</div>
 
-    <!-- 姓名 -->
-    <div class="weui-cells__title" :class="{'weui-cell_warn': errors.name}">姓名</div>
-    <div class="weui-cells weui-cells_after-title">
-      <div class="weui-cell weui-cell_input" :class="{'weui-cell_warn': errors.name}">
-        <div class="weui-cell__bd">
-          <input class="weui-input" placeholder="请输入姓名" name="name" v-model="form.name"/>
-        </div>
-        <div class="weui-cell__ft">
-          <icon v-if="errors.name" type="warn" size="23" color="#E64340"></icon>
-        </div>
-      </div>
-    </div>
-    <div v-if="errors.name" class="weui-cells__tips error-message">{{ errors.name[0] }}</div>
-
-    <!-- 密码 -->
-    <div class="weui-cells__title" :class="{'weui-cell_warn': errors.password}">密码</div>
-    <div class="weui-cells weui-cells_after-title">
-      <div class="weui-cell weui-cell_input" :class="{'weui-cell_warn': errors.password}">
-        <div class="weui-cell__bd">
-          <input class="weui-input" v-model="form.password" placeholder="请输入密码" name="password" type="password"/>
-        </div>
-        <div class="weui-cell__ft">
-          <icon v-if="errors.password" type="warn" size="23" color="#E64340"></icon>
-        </div>
-      </div>
-    </div>
-    <div v-if="errors.password" class="weui-cells__tips error-message">{{ errors.password[0] }}</div>
 
     <div class="weui-btn-area">
       <button class="weui-btn" type="primary" @tap="submit">注册</button>
@@ -126,12 +99,12 @@
     },
     onReady(){
       this.initValidator()
-    },
-    onLaunch(){
       wx.showModal({
         title: '提示',
         content: '您还未注册，请先注册'
       })
+    },
+    onLaunch(){
     },
     methods: {
       initValidator(){
@@ -159,15 +132,8 @@
               required: true,
               mobile: true
             },
-            name: {
-              required: true
-            },
             verification_code: {
               required: true
-            },
-            password: {
-              required: true,
-              minlength: 6
             }
           },
           messages: {
@@ -175,15 +141,8 @@
               required: '请输入手机号',
               mobile: '手机号格式不正确'
             },
-            name: {
-              required: '请输入姓名'
-            },
             verification_code: {
               required: '请输入验证码'
-            },
-            password: {
-              required: '请填写密码',
-              minlength: '密码最少 6 位数'
             }
           },
           onMessage: (data) => {

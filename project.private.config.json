@@ -3,5 +3,26 @@
   "setting": {
     "compileHotReLoad": true,
     "urlCheck": false
-  }
+  },
+  "condition": {
+    "miniprogram": {
+      "list": [
+        {
+          "name": "pages/add_recipe",
+          "pathName": "pages/add_recipe",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
+          "name": "pages/user",
+          "pathName": "pages/user",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        }
+      ]
+    }
+  },
+  "libVersion": "3.3.3"
 }

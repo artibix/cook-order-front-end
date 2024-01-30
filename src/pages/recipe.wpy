@@ -1,0 +1,40 @@
+<style>
+
+</style>
+
+<template>
+  <view class="container">
+    <div>{{ recipe.name }}</div>
+    <img src="{{ recipe.image_url }}" alt="{{ recipe.name }}"/>
+    <div>简介：{{ recipe.cook_method }}</div>
+    <div>用料：TODO</div>
+  </view>
+</template>
+
+<script>
+import wepy from '@wepy/core';
+import store from '@/store'
+import { mapMutations, mapGetters } from '@wepy/x'
+
+wepy.page({
+  store,
+
+  data: {
+    recipe: {}
+  },
+  computed: {
+    ...mapGetters(['showRecipeList'])
+  },
+  onLoad ({recipe_id}) {
+    this.recipe = this.showRecipeList[recipe_id]
+  }
+})
+</script>
+
+<config>
+{
+  navigationBarTitleText: '菜谱',
+  "usingComponents": {
+    "van-search": "module:vant-weapp/dist/search/index"
+  }
+}

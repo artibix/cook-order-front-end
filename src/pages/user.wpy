@@ -1,31 +1,53 @@
+<style lang="less">
+.center-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 250rpx; /* 设置高度，使内容居中在页面中间 */
+}
+
+.avatar {
+  width: 150rpx; /* 设置头像宽度 */
+  height: 150rpx; /* 设置头像高度 */
+  border-radius: 50%; /* 将头像设置为圆形 */
+  margin-bottom: 20rpx; /* 设置头像与昵称之间的间距 */
+}
+
+.nickname {
+  font-size: 16px; /* 设置昵称字体大小 */
+  color: #333; /* 设置昵称字体颜色 */
+}
+</style>
 <template>
-<div class="page">
-  <div class="page__bd">
-    <div class="weui-panel weui-panel_access">
-      <div class="weui-panel__hd" v-if="isLoggedIn">
-        已登录 name: {{ user.name }}
-       <button type="warn" v-on:click="logout">退出登录</button>
-      </div>
-      <div v-else>
-        <div class="weui-panel__hd">
-         <button type="primary" @tap="login">自动登录</button>
-      </div>
-      </div>
+  <div class="center-container">
+    <image class="avatar" src="{{user.avatar_url ? user.avatar_url : defaultAvatar }}" mode="aspectFill"></image>
+    <span class="nickname">{{user.name ? user.name : '用户名' }}</span>
+  </div>
+  <van-cell title="菜谱收藏" size="large" is-link  icon="star-o"/>
+  <van-cell title="材料订单" size="large" is-link  icon="cart-o"/>
+  <van-cell title="消息" size="large" is-link  icon="chat-o"/>
+  <van-cell title="加入家庭" size="large" is-link  icon="manager-o"/>
+  <div class="weui-panel weui-panel_access">
+    <div class="weui-panel__hd" v-if="isLoggedIn">
+    <button type="warn" v-on:click="logout">退出登录</button>
+    </div>
+    <div v-else>
+      <div class="weui-panel__hd">
+      <button type="primary" @tap="login">自动登录</button>
+    </div>
     </div>
   </div>
-</div>
 </template>
-<config>
-  {
-    navigationBarTitleText: '个人中心',
-  }
-</config>
 <script>
   import wepy from '@wepy/core'
   import store from '@/store'
   import { mapGetters } from '@wepy/x'
 
   wepy.page({
+    data: {
+      defaultAvatar: 'https://pic1.zhimg.com/v2-70e686bea7cd1ef9a050cd10b5a61810_r.jpg?source=1940ef5c'
+    },
     store,
     computed: {
       ...mapGetters(['user','isLoggedIn'])
@@ -42,15 +64,21 @@
         try {
           await this.$store.dispatch('login')
         } catch (err) {
-          if (err.response.statusCode === 403)
-            setTimeout(function () {
-              wx.navigateTo({
-                url: '/pages/auth/register'
-              });
-            }, 3000);
+          wx.navigateTo({
+            url: '/pages/auth/register'
+          });
         }
       },
 
     }
   })
 </script>
+
+<config>
+{
+  navigationBarTitleText: '个人中心',
+  "usingComponents": {
+    "van-cell": "module:vant-weapp/dist/cell/index"
+  }
+}
+</config>

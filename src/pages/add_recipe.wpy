@@ -1,0 +1,280 @@
+<style lang="less">
+.upload {
+  display: flex;
+  justify-content: center; /* 将子元素水平居中 */
+}
+.suggestion-list {
+  position: absolute;
+  text-align: center;
+  width: 100%;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  max-height: 200rpx;
+  overflow-y: auto;
+  box-shadow: 0 2rpx 5rpx rgba(0, 0, 0, 0.1); // 添加一点阴影效果
+  z-index: 999; // 提高层级，确保在其他元素之上
+  border-radius: 8rpx; // 圆角边框
+  padding: 8rpx; // 内边距
+}
+
+.ingredients {
+  display: flex;
+  justify-content: space-between; /* 将子元素分散对齐，可以根据需要调整 */
+  align-items: center; /* 垂直居中对齐，可以根据需要调整 */
+  /* 其他样式，根据需要调整 */
+}
+
+.ingredient_name,
+.ingredient_g {
+  /* 可以根据需要设置 .ingredient_name 和 .ingredient_g 的样式 */
+  flex: 1; /* 设置子元素平均分配剩余空间，使两个元素宽度相等 */
+  margin-right: 10px; /* 可以根据需要设置子元素之间的间距 */
+}
+
+.add-ingredient {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20rpx
+}
+
+</style>
+
+<template>
+  <view class="container">
+    <van-field
+      value="{{ cuisineName }}"
+      placeholder="请输入菜系"
+      bind:focus="handleCuisineFocus"
+      bind:change="handleCuisineChange"
+      bind:confirm="cuisineConfirm"
+      label="菜系"
+    />
+    <view v-if="showCuisineSuggestionList" class="suggestion-list">
+      <view v-for="(item, index) in cuisineSuggestionList" :key="index" @click="selectCuisineSuggestion(item)">
+        {{ item }}
+      </view>
+    </view>
+    <van-field
+      value="{{ recipeName }}"
+      placeholder="请输入菜谱名"
+      bind:change="setRecipeName"
+      label="菜谱"
+    />
+    <view class="upload">
+      <van-uploader preview-size="300rpx" upload-text="上传菜谱图片" file-list="{{ fileList }}" bind:delete="deleteImage" bind:click-preview="onPreviewImage" max-count="1" bind:after-read="afterRead" />
+    </view>
+
+    <van-cell-group>
+      <van-field
+        value="{{ cookMethod }}"
+        label="做法"
+        type="textarea"
+        placeholder="请输入菜谱介绍或者做法"
+        bind:change="setCookMethod"
+        autosize
+      />
+    </van-cell-group>
+
+    <!-- 用料 -->
+
+    <view class="ingredients" v-for="(item, index) in ingredientList" :key="index">
+      <van-field
+        class="ingredient_name"
+        value="{{ item.name }}"
+        bind:focus="handleIngredientFocus(index, $event)"
+        bind:change="handleIngredientChange(index, $event)"
+        label="材料"
+        bind:confirm="ingredientConfirm(index)"
+        placeholder="名称"
+        autosize
+      />
+      <van-field
+        class="ingredient_g"
+        value="{{ item.gram }}"
+        label="克重"
+        type="number"
+        bind:change="ingredientGramChange(index, $event)"
+        placeholder="克重"
+        autosize
+      />
+      <view v-if="item.showIngredientSuggestionList" class="suggestion-list">
+        <view v-for="(item, idx) in item.ingredeintSuggestionList" :key="idx" @click="selectIngredientSuggestion(item, index)">
+          {{ item }}
+        </view>
+      </view>
+    </view>
+
+    <view class="add-ingredient">
+      <van-button type="default" bind:click="addIngredient">添加材料</van-button>
+    </view>
+
+    <van-button type="primary" bind:click="createRecipe" size="large">创建菜谱</van-button>
+  </view>
+</template>
+
+<script>
+import wepy from '@wepy/core';
+import store from '@/store'
+import { mapMutations, mapGetters } from '@wepy/x'
+import { putRecipeImage } from '@/api/recipe'
+import { getIngredients } from '@/api/ingredient'
+
+wepy.page({
+  store,
+  data: {
+    //TODO: 数据校验，使用 we-validate
+    cookMethod: '',
+    cuisineName: '',
+    recipeName: '',
+    ingredientList: [{name: '', gram: '', showIngredientSuggestionList: false, ingredeintSuggestionList: []}],
+    showCuisineSuggestionList: false,
+    cuisineSuggestionList: [],
+    fileList: [],
+  },
+
+  computed: {
+    ...mapGetters(['cuisineList'])
+  },
+  methods: {
+    createRecipe () {
+
+      console.log('Data:', this);
+    },
+    cuisineConfirm () {
+      this.showCuisineSuggestionList = false;
+    },
+    ingredientConfirm (index) {
+      this.ingredientList[index].showIngredientSuggestionList = false
+    },
+    handleIngredientChange (index, e) {
+      this.ingredientList[index].name = e.$wx.detail;
+      this.getIngredientSuggestions(this.ingredientList[index].name, index);
+    },
+    handleIngredientFocus(index, e) {
+      // 处理输入事件，更新 inputValue，并调用接口获取提示词列表
+      this.ingredientList[index].name = e.$wx.detail.value;
+      this.getIngredientSuggestions(this.ingredientList[index].name, index);
+    },
+    async getIngredientSuggestions(ingredientName, index) {
+      // 调用接口获取提示词列表，这里可以使用 debounce 防抖来减少请求次数
+      const name = ingredientName
+      try {
+        const ingredientListRes = await getIngredients()
+        const ingredientList = ingredientListRes.data
+        const filteredCuisineList = ingredientList.filter(ingredient => ingredient.name.includes(name));
+        const names = filteredCuisineList.map(ingredient => ingredient.name);
+        if (names.length !== 0) {
+          this.ingredientList[index].ingredeintSuggestionList = names
+          this.ingredientList[index].showIngredientSuggestionList = true;
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    selectIngredientSuggestion(item, index) {
+      this.ingredientList[index].name = item,
+      this.ingredientList[index].showIngredientSuggestionList = false;
+    },
+
+    addIngredient () {
+      this.ingredientList.push({name: '', gram: '', showIngredientSuggestionList: false, ingredeintSuggestionList: []})
+    },
+    setRecipeName (e) {
+      this.recipeName = e.$wx.detail
+    },
+    setCookMethod (e) {
+      this.cookMethod = e.$wx.detail
+    },
+    ingredientGramChange (index, e) {
+      this.ingredientList[index].gram = e.$wx.detail
+    },
+    handleCuisineChange(event) {
+      // 处理输入事件，更新 inputValue，并调用接口获取提示词列表
+      // this.cuisineName = event.$wx.detail;
+      this.getCuisineSuggestions(this.cuisineName);
+    },
+    handleCuisineFocus(event) {
+      // 处理输入事件，更新 inputValue，并调用接口获取提示词列表
+      // this.cuisineName = event.$wx.detail.value;
+      this.getCuisineSuggestions(this.cuisineName);
+    },
+    getCuisineSuggestions(cuisineName) {
+      // 调用接口获取提示词列表，这里可以使用 debounce 防抖来减少请求次数
+      // 请根据实际情况调整接口和逻辑
+      const name = cuisineName || ''
+      const filteredCuisineList = this.cuisineList.filter(cuisine => cuisine.name.includes(name));
+      const names = filteredCuisineList.map(cuisine => cuisine.name);
+      if (names.length !== 0) {
+        this.cuisineSuggestionList = names
+        this.showCuisineSuggestionList = true;
+      }
+    },
+    selectCuisineSuggestion(item) {
+      // 用户选择某个提示词的处理逻辑
+      this.cuisineName = item,
+      this.showCuisineSuggestionList = false;
+    },
+
+    deleteImage(event) {
+      const { index } = event.$wx.detail;
+      // FIXME: 不清楚会造成什么影响
+      // this.$emit('delete', Object.assign(Object.assign({}, this.getDetail(index)), { file: this.fileList[index] }));
+      this.fileList.splice(index, 1)
+    },
+    onPreviewImage(event) {
+      // TODO wx.priviewImage 报错：previewImage:fail can't be invoked in 3000ms until user taps，未找到原因，预览图片待实现
+      // const { index } = event.$wx.detail;
+      // const lists = this.fileList
+      // const urls = lists.map((item) => item.url)
+      // const showmenu = true
+      // const item = lists[index];
+      // wx.previewImage({
+      //     urls: ['http://localhost:8000/recipes/794073fa-2aa4-4c10-b49e-4b610c12e0b5.png'],
+      //     current: 'http://localhost:8000/recipes/794073fa-2aa4-4c10-b49e-4b610c12e0b5.png',
+      //     showmenu: showmenu,
+      //     fail(err) {
+      //       console.log(err)
+      //       wx.showToast({ title: '预览图片失败', icon: 'none' });
+      //     },
+      // });
+    },
+    async afterRead(event) {
+      const { file } = event.$wx.detail;
+      try {
+        // TODO：待绑定用户
+        let recipeResponse = await putRecipeImage(file.url, 'recipe', {user: 'test'})
+        const fileList = this.fileList || [];
+        fileList.push({ ...file, url: recipeResponse.data });
+        this.fileList = fileList
+      } catch (err) {
+        console.log(err)
+      }
+      // // 当设置 mutiple 为 true 时, file 为数组格式，否则为对象格式
+      // wx.uploadFile({
+      //   url: 'https://example.weixin.qq.com/upload', // 仅为示例，非真实的接口地址
+      //   filePath: file.url,
+      //   name: 'file',
+      //   formData: { user: 'test' },
+      //   success(res) {
+      //     // 上传完成需要更新 fileList
+      //     const { fileList = [] } = this.data;
+      //     fileList.push({ ...file, url: res.data });
+      //     this.setData({ fileList });
+      //   },
+      // });
+    },
+  }
+})
+</script>
+
+<config>
+{
+  navigationBarTitleText: '添加菜谱',
+  "usingComponents": {
+    "van-field": "module:vant-weapp/dist/field/index",
+    "van-image": "module:@vant/weapp/dist/image/index",
+    "van-uploader": "module:@vant/weapp/dist/uploader/index",
+    "van-button": "module:@vant/weapp/dist/button/index"
+  }
+}

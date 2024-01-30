@@ -68,7 +68,29 @@ const authRequest = async (url, options = {}, showLoading = true) => {
   return await request(url, options, showLoading)
 }
 
+const uploadFile = async (url, options = {}, showLoading = true) => {
+  // 显示加载中
+  if (showLoading) {
+    wx.showLoading({title: '加载中'})
+  }
+  options.url = host + url
+
+  let response = await wepy.wx.uploadFile(options)
+
+  if (showLoading) {
+    // 隐藏加载中
+    wx.hideLoading()
+  }
+
+  if (response.statusCode >= 200 && response.statusCode < 300) {
+    return response
+  }
+
+  console.log('上传文件出现错误')
+}
+
 export {
  request,
- authRequest
+ authRequest,
+ uploadFile
 }

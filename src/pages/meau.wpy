@@ -1,11 +1,15 @@
 <style lang="less">
+.footer {
+  height: 100rpx;
+}
 .classify {
   display: flex;
   position: relative;
+  justify-content: center;
+  align-items: center;
   .classify_catetory {
     width: 200rpx;
     position: relative;
-    z-index: 1;
     .name {
       text-align: center;
       height: 100rpx;
@@ -21,14 +25,18 @@
       background: #fff;
       color: #ff6a3c;
     }
+    .add_cuisine {
+      margin-left: 23rpx;
+    }
   }
   .classify_detail {
     position: relative;
-    z-index: 999;
     // margin-left: -15rpx;
     background: #fff;
     padding: 15px 10px 10px 30px;
-    .classify_item {
+    width: 100%;
+    .add_recipe {
+      margin-bottom: 10rpx;
     }
     .title {
       font-size: 30rpx;
@@ -39,24 +47,27 @@
       display: flex;
       flex-direction: column;
       flex-wrap: nowrap;
-      margin: 20rpx 0rpx;
-    }
-    .child_image {
-      width: 60px;
-      height: 60px;
-    }
-    .child_name {
-      font-size: 26rpx;
-      color: #666;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      width: 170rpx;
     }
     .children_item {
       height: 200rpx;
-      width: 170rpx;
+      width: 100%;
       text-align: center;
+      margin: 20rpx 0 rpx;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      .child_image {
+        width: 80px;
+        height: 80px;
+      }
+      .child_name {
+        font-size: 26rpx;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        width: 170rpx;
+      }
     }
   }
 }
@@ -78,18 +89,47 @@
     <div class="name" :class="{ 'active': cuisine.active }" v-for="(cuisine, idx) in cuisineList" @tap="selectCuisine" id="{{idx}}">
       {{cuisine.name}}
     </div>
+    <van-button input-width="80rpx" class="add_cuisine" icon="plus" type="default" bind:click="openModel"></van-button>
   </scroll-div>
   <scroll-div class="classify_detail" scroll-y scroll-with-animation="true">
       <div class="children">
-        <!-- TODO：配置URL -->
-        <navigator hover-class="none" class="children_item" v-for="(recipe, idx) in showRecipeList">
-          <image class="child_image" src="{{recipe.image_url}}"></image>
+        <!-- 添加菜谱 -->
+        <van-button size="large" input-width="80rpx" class="add_recipe" icon="plus" type="primary" bind:click="addRecipe">添加菜谱</van-button>
+        <view class="children_item" v-for="(recipe, idx) in showRecipeList">
+          <navigator hover-class="none" url="/pages/recipe?recipe_id={{recipe.id}}">
+            <image class="child_image" src="{{recipe.image_url}}"></image>
+          </navigator>
           <div class="child_name">{{recipe.name}}</div>
-        </navigator>
+          <van-stepper value="{{ 1 }}" min="0" data-cuisine-id="{{recipe.cuisine_id}}" data-recipe-id="{{recipe.id}}" bind:change="stepperChange" />
+        </view>
       </div>
   </scroll-div>
 </div>
 
+<div class="footer">
+  <van-goods-action>
+    <van-goods-action-icon
+      icon="cart-o"
+      text="订单"
+      bind:click="onClickIcon"
+    />
+    <van-goods-action-button
+      text="结算食材"
+      bind:click="onClickButton"
+    />
+  </van-goods-action>
+</div>
+
+<!-- 添加菜系模态框 -->
+<modal class="modal" v-if="addCuisineModalShow" no-cancel bindconfirm="addCuisine">
+  <van-cell-group>
+    <van-field
+      placeholder="请输入菜系名称"
+      border="{{ false }}"
+      bind:change="changeCuisineName"
+    />
+  </van-cell-group>
+</modal>
 
 </template>
 
@@ -98,12 +138,14 @@
 import wepy from '@wepy/core';
 import store from '@/store'
 import { mapMutations, mapGetters } from '@wepy/x'
+import { putCuisine, getCuisines } from '@/api/cuisine'
+import { putRecipeImage } from '@/api/recipe'
 
 wepy.page({
   data: {
     value: '',
-    // 搜索时保留原来的菜谱数据
-    cuisineListBak: []
+    cuisineName: '',
+    addCuisineModalShow: false,
   },
   store,
   computed: {
@@ -113,7 +155,7 @@ wepy.page({
   async onLoad() {
     try {
       await this.$store.dispatch('initCuisine')
-      this.cuisineListBak = this.cuisineList.slice()
+      this.$app.$options.globalData.cuisineList = this.cuisineList.slice()
     } catch (err) {
       console.error(err)
     }
@@ -123,9 +165,8 @@ wepy.page({
     ...mapMutations(['setCuisineList']),
     search (e) {
       let searchString = e.$wx.detail
-      console.log(searchString)
       if (searchString === '')
-        this.setCuisineList(this.cuisineListBak)
+        this.setCuisineList(this.$app.$options.globalData.cuisineList)
       let cuisineList = this.cuisineList.map(cuisine => {
         // 使用扩展运算符创建 recipes 的浅拷贝
         let recipes = [...cuisine.recipes].filter(recipe => recipe.name.includes(searchString));
@@ -134,7 +175,55 @@ wepy.page({
       this.setCuisineList(cuisineList)
     },
     searchCancel () {
-      this.setCuisineList(this.cuisineListBak)
+      this.setCuisineList(this.$app.$options.globalData.cuisineList)
+    },
+    openModel () {
+      this.addCuisineModalShow = true
+    },
+    changeCuisineName (e) {
+      this.cuisineName = e.$wx.detail
+    },
+    async afterRead(event) {
+      const { file } = event.$wx.detail;
+      try {
+        const recipeResponse = await putRecipeImage(file.url, 'name', {user: 'test'})
+        const { fileList = [] } = recipeResponse.data;
+        fileList.push({ ...file, url: res.data });
+        this.fileList = fileList
+      } catch (err) {
+        console.error(err)
+      }
+    },
+    async addCuisine () {
+      if (this.cuisineName !== '') {
+        try {
+          const resData = await putCuisine(this.cuisineName)
+          if (resData.data.cuisine_name !== undefined && resData.data.cuisine_name[0] !== '') {
+            wx.showModal({
+              title: '提示',
+              content: resData.data.cuisine_name[0]
+            })
+          }
+          try {
+            await this.$store.dispatch('initCuisine')
+            this.$app.$options.globalData.cuisineList = this.cuisineList.slice()
+          } catch (err) {
+            console.error(err)
+          }
+        } catch (err) {
+          console.error(err)
+        }
+      }
+      this.addCuisineModalShow = false
+    },
+    addRecipe (e) {
+      console.log(e)
+      wx.navigateTo({
+        url: '/pages/add_recipe'
+      });
+    },
+    stepperChange (e) {
+      console.log(e)
     },
     selectCuisine(e) {
       const index = e.currentTarget.id;
@@ -146,9 +235,6 @@ wepy.page({
 
       // 再将指定元素的 active 设置为 true
       this.$set(this.cuisineList, index, { ...this.cuisineList[index], active: true });
-
-      // 设置显示的菜谱
-      // this.setShowRecipeList(this.cuisineList[index].recipes)
     },
   },
 
@@ -157,8 +243,15 @@ wepy.page({
 
 <config>
 {
+  navigationBarTitleText: '菜单',
   "usingComponents": {
-    "van-search": "module:vant-weapp/dist/search/index"
+    "van-search": "module:vant-weapp/dist/search/index",
+    "van-button": "module:vant-weapp/dist/button/index",
+    "van-stepper": "module:vant-weapp/dist/stepper/index",
+    "van-goods-action": "module:vant-weapp/dist/goods-action/index",
+    "van-goods-action-icon": "module:vant-weapp/dist/goods-action-icon/index",
+    "van-goods-action-button": "module:vant-weapp/dist/goods-action-button/index",
+    "van-field": "module:vant-weapp/dist/field/index"
   }
 }
 </config>

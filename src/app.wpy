@@ -16,7 +16,9 @@ wepy.use(promisify)
 
 
 wepy.app({
-
+  globalData: {
+    cuisineList: [],
+  },
   onLaunch() {
     wepy.wx.login().then(res => {
       console.log('login: ', res)
@@ -35,7 +37,9 @@ wepy.app({
       'pages/material',
       'pages/user',
       'pages/auth/login',
-      'pages/auth/register'
+      'pages/auth/register',
+      'pages/recipe',
+      'pages/add_recipe'
     ],
     window: {
       backgroundTextStyle: 'light',

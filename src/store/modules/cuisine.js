@@ -29,12 +29,14 @@ const actions = {
     const cuisinesResouce = await getCuisines()
     const recipesResouce = await getRecipes()
     let cuisineList = []
+    // TODO: 尽量不要修改数据结构
     cuisineList.push({
       id: 0,
       name: '全部',
       active: true,
       recipes: recipesResouce.data
     })
+    // TODO: 这里需要优化，因为每个 recipe 都有 cuisine_id，直接拉取 recipes 对 cuisine_id 进行筛选完成逻辑会更好
     for (let cuisine of cuisinesResouce.data) {
       let cuisineRecipesResouce = await getCuisineRecipes(cuisine.id)
       cuisine.recipes = cuisineRecipesResouce.data || []
@@ -42,10 +44,6 @@ const actions = {
     }
     commit('setCuisineList', cuisineList)
   },
-
-  // async initRecipe ({ dispatch, commit, state }, params = {}) {
-  //   commit('setShowRecipeList', )
-  // }
 }
 
 // 定义 mutations
@@ -53,9 +51,6 @@ const mutations = {
   setCuisineList(state, cuisineList) {
     state.cuisineList = cuisineList
   },
-  // setShowRecipeList(state, showRecipeList) {
-  //   state.showRecipeList = showRecipeList
-  // },
 }
 
 export default {
