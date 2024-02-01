@@ -11,3 +11,16 @@ export function putRecipeImage(filePath, name, formData) {
         formData: formData
     })
 }
+
+export function putRecipe(cuisineId, name, imageUrl='', cookMethod, ingredients) {
+    return request('api/recipes', {
+        method: 'post',
+        data: {
+            cuisine_id: cuisineId,
+            name: name,
+            image_url: imageUrl,
+            cook_method: cookMethod,
+            ingredients: ingredients
+        }
+    })
+}

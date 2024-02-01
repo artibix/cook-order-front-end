@@ -4,11 +4,11 @@ export function getCuisines() {
     return request('api/cuisines')
 }
 
-export function putCuisine(cuisine_name) {
+export function putCuisine(cuisineName) {
     return request('api/cuisines', {
         method: 'POST',
         data: {
-            cuisine_name: cuisine_name
+            cuisine_name: cuisineName
         }
     })
 }

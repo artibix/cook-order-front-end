@@ -26,7 +26,8 @@ wepy.page({
     ...mapGetters(['showRecipeList'])
   },
   onLoad ({recipe_id}) {
-    this.recipe = this.showRecipeList[recipe_id]
+    recipe_id = Number(recipe_id)
+    this.recipe = this.showRecipeList.find(recipe => recipe.id === recipe_id)
   }
 })
 </script>

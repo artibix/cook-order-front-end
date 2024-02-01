@@ -62,7 +62,7 @@
       label="菜谱"
     />
     <view class="upload">
-      <van-uploader preview-size="300rpx" upload-text="上传菜谱图片" file-list="{{ fileList }}" bind:delete="deleteImage" bind:click-preview="onPreviewImage" max-count="1" bind:after-read="afterRead" />
+      <van-uploader preview-size="300rpx" upload-text="上传菜谱图片" file-list="{{ imageList }}" bind:delete="deleteImage" bind:click-preview="onPreviewImage" max-count="1" bind:after-read="afterRead" />
     </view>
 
     <van-cell-group>
@@ -91,11 +91,11 @@
       />
       <van-field
         class="ingredient_g"
-        value="{{ item.gram }}"
-        label="克重"
+        value="{{ item.detail }}"
+        label="备注"
         type="number"
-        bind:change="ingredientGramChange(index, $event)"
-        placeholder="克重"
+        bind:change="ingredientDetailChange(index, $event)"
+        placeholder="备注"
         autosize
       />
       <view v-if="item.showIngredientSuggestionList" class="suggestion-list">
@@ -117,8 +117,9 @@
 import wepy from '@wepy/core';
 import store from '@/store'
 import { mapMutations, mapGetters } from '@wepy/x'
-import { putRecipeImage } from '@/api/recipe'
-import { getIngredients } from '@/api/ingredient'
+import { putRecipeImage, putRecipe } from '@/api/recipe'
+import { getIngredients, putIngredient } from '@/api/ingredient'
+import { getCuisines } from '@/api/cuisine'
 
 wepy.page({
   store,
@@ -127,19 +128,37 @@ wepy.page({
     cookMethod: '',
     cuisineName: '',
     recipeName: '',
-    ingredientList: [{name: '', gram: '', showIngredientSuggestionList: false, ingredeintSuggestionList: []}],
+    imageList: [],
+
+    ingredientList: [{name: '', detail: '', showIngredientSuggestionList: false, ingredeintSuggestionList: []}],
     showCuisineSuggestionList: false,
     cuisineSuggestionList: [],
-    fileList: [],
   },
 
   computed: {
     ...mapGetters(['cuisineList'])
   },
   methods: {
-    createRecipe () {
-
+    async createRecipe () {
       console.log('Data:', this);
+      const cuisine_id = this.cuisineList.find(cuisine => cuisine.name === this.cuisineName).id
+      try {
+        await putRecipe(cuisine_id, this.recipeName, this.imageList[0].url,
+          this.cookMethod, this.ingredientList.map(({ name, detail }) => ({ name, detail })))
+        wx.showToast({
+            title: '创建成功',
+            icon: 'success'
+          })
+
+          // 跳转到菜单
+          setTimeout(async () => {
+            wx.switchTab({
+              url: '/pages/meau'
+            })
+          }, 2000)
+      } catch (error) {
+        console.log(error);
+      }
     },
     cuisineConfirm () {
       this.showCuisineSuggestionList = false;
@@ -178,7 +197,7 @@ wepy.page({
     },
 
     addIngredient () {
-      this.ingredientList.push({name: '', gram: '', showIngredientSuggestionList: false, ingredeintSuggestionList: []})
+      this.ingredientList.push({name: '', detail: '', showIngredientSuggestionList: false, ingredeintSuggestionList: []})
     },
     setRecipeName (e) {
       this.recipeName = e.$wx.detail
@@ -186,8 +205,8 @@ wepy.page({
     setCookMethod (e) {
       this.cookMethod = e.$wx.detail
     },
-    ingredientGramChange (index, e) {
-      this.ingredientList[index].gram = e.$wx.detail
+    ingredientDetailChange (index, e) {
+      this.ingredientList[index].detail = e.$wx.detail
     },
     handleCuisineChange(event) {
       // 处理输入事件，更新 inputValue，并调用接口获取提示词列表
@@ -199,15 +218,20 @@ wepy.page({
       // this.cuisineName = event.$wx.detail.value;
       this.getCuisineSuggestions(this.cuisineName);
     },
-    getCuisineSuggestions(cuisineName) {
+    async getCuisineSuggestions(cuisineName) {
       // 调用接口获取提示词列表，这里可以使用 debounce 防抖来减少请求次数
       // 请根据实际情况调整接口和逻辑
       const name = cuisineName || ''
-      const filteredCuisineList = this.cuisineList.filter(cuisine => cuisine.name.includes(name));
-      const names = filteredCuisineList.map(cuisine => cuisine.name);
-      if (names.length !== 0) {
-        this.cuisineSuggestionList = names
-        this.showCuisineSuggestionList = true;
+      try {
+        const { data } = await getCuisines()
+        const filteredCuisineList = data.filter(cuisine => cuisine.name.includes(name));
+        const names = filteredCuisineList.map(cuisine => cuisine.name);
+        if (names.length !== 0) {
+          this.cuisineSuggestionList = names
+          this.showCuisineSuggestionList = true;
+        }
+      } catch (error) {
+
       }
     },
     selectCuisineSuggestion(item) {
@@ -219,13 +243,13 @@ wepy.page({
     deleteImage(event) {
       const { index } = event.$wx.detail;
       // FIXME: 不清楚会造成什么影响
-      // this.$emit('delete', Object.assign(Object.assign({}, this.getDetail(index)), { file: this.fileList[index] }));
-      this.fileList.splice(index, 1)
+      // this.$emit('delete', Object.assign(Object.assign({}, this.getDetail(index)), { file: this.imageList[index] }));
+      this.imageList.splice(index, 1)
     },
     onPreviewImage(event) {
       // TODO wx.priviewImage 报错：previewImage:fail can't be invoked in 3000ms until user taps，未找到原因，预览图片待实现
       // const { index } = event.$wx.detail;
-      // const lists = this.fileList
+      // const lists = this.imageList
       // const urls = lists.map((item) => item.url)
       // const showmenu = true
       // const item = lists[index];
@@ -244,25 +268,12 @@ wepy.page({
       try {
         // TODO：待绑定用户
         let recipeResponse = await putRecipeImage(file.url, 'recipe', {user: 'test'})
-        const fileList = this.fileList || [];
-        fileList.push({ ...file, url: recipeResponse.data });
-        this.fileList = fileList
+        const imageList = this.imageList || [];
+        imageList.push({ ...file, url: recipeResponse.data });
+        this.imageList = imageList
       } catch (err) {
         console.log(err)
       }
-      // // 当设置 mutiple 为 true 时, file 为数组格式，否则为对象格式
-      // wx.uploadFile({
-      //   url: 'https://example.weixin.qq.com/upload', // 仅为示例，非真实的接口地址
-      //   filePath: file.url,
-      //   name: 'file',
-      //   formData: { user: 'test' },
-      //   success(res) {
-      //     // 上传完成需要更新 fileList
-      //     const { fileList = [] } = this.data;
-      //     fileList.push({ ...file, url: res.data });
-      //     this.setData({ fileList });
-      //   },
-      // });
     },
   }
 })

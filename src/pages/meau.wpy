@@ -6,7 +6,7 @@
   display: flex;
   position: relative;
   justify-content: center;
-  align-items: center;
+  // align-items: center;
   .classify_catetory {
     width: 200rpx;
     position: relative;
@@ -97,7 +97,7 @@
         <van-button size="large" input-width="80rpx" class="add_recipe" icon="plus" type="primary" bind:click="addRecipe">添加菜谱</van-button>
         <view class="children_item" v-for="(recipe, idx) in showRecipeList">
           <navigator hover-class="none" url="/pages/recipe?recipe_id={{recipe.id}}">
-            <image class="child_image" src="{{recipe.image_url}}"></image>
+            <image class="child_image" src="{{ recipe.image_url }}"/>
           </navigator>
           <div class="child_name">{{recipe.name}}</div>
           <van-stepper value="{{ 1 }}" min="0" data-cuisine-id="{{recipe.cuisine_id}}" data-recipe-id="{{recipe.id}}" bind:change="stepperChange" />
