@@ -4,6 +4,10 @@ export function getRecipes() {
     return request('api/recipes')
 }
 
+export function getRecipeIngredients(recipe_id) {
+    return request(`api/recipes/${recipe_id}/ingredients`)
+}
+
 export function putRecipeImage(filePath, name, formData) {
     return uploadFile('api/recipe/uploadImage', {
         filePath: filePath,

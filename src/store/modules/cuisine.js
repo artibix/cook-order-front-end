@@ -1,5 +1,4 @@
-import wepy from '@wepy/core'
-import { getCuisines, getCuisineRecipes } from '@/api/cuisine'
+import { getCuisines } from '@/api/cuisine'
 import { getRecipes } from '@/api/recipe'
 
 const getDefaultState = () => {

@@ -1,14 +1,90 @@
+<style lang="less">
+.table-container {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 28rpx;
+}
+
+.head {
+    background-color: #f5f5f5;
+}
+
+.column {
+    text-align: center;
+    height: 60rpx;
+    line-height: 60rpx;
+}
+
+.data-row {
+    background-color: #fff;
+}
+
+/* 去掉第一列左边框 */
+.column:first-child {
+    border-left: none;
+}
+
+/* 去掉最后一列右边框 */
+.column:last-child {
+    border-right: none;
+}
+
+
+</style>
+
 <template>
-  <view class="container">
-    材料箱列表
+
+
+  <view v-if="!isLoggedIn">
+    请先登录
+  </view>
+  <view v-else class="table-container">
+      <van-row class="head">
+          <van-col span="6" class="column">名称</van-col>
+          <van-col span="6" class="column">备注</van-col>
+          <van-col span="12" class="column">添加日期</van-col>
+      </van-row>
+
+      <!-- 示例数据 -->
+      <van-row class="data-row" v-for="(ingredient, idx) in pantryList">
+          <van-col span="6" class="column">{{ ingredient.name }}</van-col>
+          <van-col span="6" class="column">{{ ingredient.detail }}</van-col>
+          <van-col span="12" class="column">{{ ingredient.updated_at }}</van-col>
+      </van-row>
+
+      <!-- 添加更多数据行... -->
   </view>
 </template>
 
 <script>
   import wepy from '@wepy/core'
+  import store from '@/store'
+  import { mapGetters } from '@wepy/x'
 
   wepy.page({
-    onLoad() {
+    store,
+    async onShow() {
+      if (!this.isLoggedIn || this.pantryList.length) return
+
+      try {
+        await this.$store.dispatch('getPantries')
+      } catch (err) {
+        console.error(err)
+      }
+    },
+    computed: {
+      ...mapGetters(['isLoggedIn', 'pantryList'])
     },
   })
+
 </script>
+
+<config>
+{
+  navigationBarTitleText: '材料箱',
+  "usingComponents": {
+    "van-row": "module:vant-weapp/dist/row/index",
+    "van-col": "module:vant-weapp/dist/col/index"
+  }
+}
+</config>

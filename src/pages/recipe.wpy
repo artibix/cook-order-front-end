@@ -7,7 +7,10 @@
     <div>{{ recipe.name }}</div>
     <img src="{{ recipe.image_url }}" alt="{{ recipe.name }}"/>
     <div>简介：{{ recipe.cook_method }}</div>
-    <div>用料：TODO</div>
+    <div>用料：</div>
+    <div v-for="(ingredient, idx) in ingredients">
+      {{ ingredient.name }} {{ ingredient.detail }}
+    </div>
   </view>
 </template>
 
@@ -15,19 +18,23 @@
 import wepy from '@wepy/core';
 import store from '@/store'
 import { mapMutations, mapGetters } from '@wepy/x'
+import { getRecipeIngredients } from '@/api/recipe'
 
 wepy.page({
   store,
 
   data: {
-    recipe: {}
+    recipe: {},
+    ingredients: []
   },
   computed: {
     ...mapGetters(['showRecipeList'])
   },
-  onLoad ({recipe_id}) {
+  async onLoad ({recipe_id}) {
     recipe_id = Number(recipe_id)
     this.recipe = this.showRecipeList.find(recipe => recipe.id === recipe_id)
+    const res = await getRecipeIngredients(recipe_id)
+    this.ingredients = res.data
   }
 })
 </script>

@@ -1,5 +1,6 @@
 <style lang="less">
 @import (css) './assets/style/app.wxss';
+@import (css) './assets/style/vant.wxss';
 .page{
   background-color: #FFFFFF;
 }
