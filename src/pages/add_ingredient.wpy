@@ -1,0 +1,98 @@
+<style lang="less">
+</style>
+
+<template>
+    <van-field
+      value="{{ ingredientName }}"
+      placeholder="请输入材料名"
+      bind:change="changeIngredientName"
+      label="材料"
+    />
+    <van-field
+      value="{{ detail }}"
+      placeholder="请输入备注"
+      bind:change="changeDetail"
+      label="备注"
+    />
+
+    <van-button type="primary" bind:click="createPantry" size="large">添加材料</van-button>
+
+</template>
+
+<script>
+  import wepy from '@wepy/core'
+  import store from '@/store'
+  import { putIngredient } from '@/api/ingredient'
+  import { putPantry } from '@/api/pantry'
+  import { mapMutations, mapGetters } from '@wepy/x'
+
+  wepy.page({
+    data: {
+        ingredientName: '',
+        detail: '',
+    },
+    store,
+    computed: {
+        ...mapGetters(['ingredientList', 'pantryList'])
+    },
+    methods: {
+        changeIngredientName (e) {
+            this.ingredientName = e.$wx.detail
+        },
+        changeDetail (e) {
+            this.detail = e.$wx.detail
+        },
+        async createPantry () {
+            if (this.ingredientName === '' && this.detail === '') return
+            const isExist = this.pantryList.some(pantry => pantry.name === this.ingredientName)
+            if (isExist) {
+                wx.showToast({
+                    title: '该材料已存在',
+                    icon: 'error'
+                })
+                return
+            }
+            let ingredient = this.ingredientList.find(ingredient => ingredient.name === this.ingredientName);
+            console.log(ingredient)
+            if (ingredient === undefined) {
+                try {
+                    const ingredientRes = await putIngredient(this.ingredientName)
+                    console.log(ingredientRes)
+                    ingredient = ingredientRes.data
+                } catch (error) {
+                    console.log(error)
+                }
+            }
+            try {
+                const pantryRes = await putPantry(ingredient.id, this.detail)
+                console.log(pantryRes)
+
+                await this.$store.dispatch('getPantries')
+                await this.$store.dispatch('getIngredients')
+                // 跳转到菜单
+                wx.switchTab({
+                    url: '/pages/material'
+                })
+
+                wx.showToast({
+                    title: '添加成功',
+                    icon: 'success'
+                })
+            } catch (error) {
+
+            }
+        }
+    }
+  })
+
+</script>
+
+<config>
+{
+  navigationBarTitleText: '添加材料',
+  "usingComponents": {
+    "van-field": "module:vant-weapp/dist/field/index",
+    "van-button": "module:@vant/weapp/dist/button/index"
+  }
+}
+</config>

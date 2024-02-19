@@ -1,0 +1,67 @@
+<style lang="less">
+</style>
+
+<template>
+    <van-field
+      value="{{ detail }}"
+      placeholder="请输入备注"
+      bind:change="changeDetail"
+      label="备注"
+    />
+
+    <van-button type="primary" bind:click="updatePantry" size="large">修改</van-button>
+
+</template>
+
+<script>
+  import wepy from '@wepy/core'
+  import { updatePantry } from '@/api/pantry'
+  import store from '@/store'
+
+  wepy.page({
+    store,
+    data: {
+        ingredientId: -1,
+        detail: '',
+    },
+    onLoad({ingredient_id}) {
+        this.ingredientId = ingredient_id
+    },
+    methods: {
+        changeDetail (e) {
+            this.detail = e.$wx.detail
+        },
+        async updatePantry () {
+            if (this.detail === '' && this.ingredientId === -1) return
+            try {
+                const pantryRes = await updatePantry(this.ingredientId, this.detail)
+                console.log(pantryRes)
+
+                await this.$store.dispatch('getPantries')
+                // 跳转到菜单
+                wx.switchTab({
+                    url: '/pages/material'
+                })
+
+                wx.showToast({
+                    title: '修改成功',
+                    icon: 'success'
+                })
+            } catch (error) {
+                console.log(error)
+            }
+        }
+    }
+  })
+
+</script>
+
+<config>
+{
+  navigationBarTitleText: '添加材料',
+  "usingComponents": {
+    "van-field": "module:vant-weapp/dist/field/index",
+    "van-button": "module:@vant/weapp/dist/button/index"
+  }
+}
+</config>

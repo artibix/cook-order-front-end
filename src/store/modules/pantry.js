@@ -1,8 +1,10 @@
 import { getPantries } from '@/api/pantry'
+import { getIngredients } from '@/api/ingredient'
 
 const getDefaultState = () => {
   return {
     pantryList: [],
+    ingredientList: [],
   }
 }
 
@@ -10,6 +12,7 @@ const state = getDefaultState()
 
 // 定义 getters
 var getters = {
+    ingredientList: state => state.ingredientList,
     pantryList: state => state.pantryList,
 }
 
@@ -20,6 +23,11 @@ const actions = {
 
     commit('setPantryList', pantryListResource.data)
   },
+  async getIngredients ({ dispatch, commit }, params = {}) {
+    const ingredientListResource = await getIngredients()
+
+    commit('setIngredientList', ingredientListResource.data)
+  }
 }
 
 // 定义 mutations
@@ -31,6 +39,9 @@ const mutations = {
     }
     state.pantryList = pantryList
   },
+  setIngredientList(state, ingredientList) {
+    state.ingredientList = ingredientList
+  }
 }
 
 export default {

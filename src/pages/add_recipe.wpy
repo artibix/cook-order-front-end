@@ -145,19 +145,17 @@ wepy.page({
       try {
         await putRecipe(cuisine_id, this.recipeName, this.imageList[0].url,
           this.cookMethod, this.ingredientList.map(({ name, detail }) => ({ name, detail })))
-        wx.showToast({
-            title: '创建成功',
-            icon: 'success'
-          })
 
         await this.$store.dispatch('initCuisine')
         this.$app.$options.globalData.cuisineList = this.cuisineList.slice()
         // 跳转到菜单
-        setTimeout(async () => {
-          wx.switchTab({
-            url: '/pages/meau'
-          })
-        }, 2000)
+        wx.switchTab({
+          url: '/pages/meau'
+        })
+        wx.showToast({
+          title: '创建成功',
+          icon: 'success'
+        })
       } catch (error) {
         console.log(error);
       }

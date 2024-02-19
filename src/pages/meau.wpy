@@ -217,7 +217,6 @@ wepy.page({
       this.addCuisineModalShow = false
     },
     addRecipe (e) {
-      console.log(e)
       wx.navigateTo({
         url: '/pages/add_recipe'
       });

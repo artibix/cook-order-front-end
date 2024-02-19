@@ -8,6 +8,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/add_ingredient",
+          "pathName": "pages/add_ingredient",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/material",
           "pathName": "pages/material",
           "query": "",

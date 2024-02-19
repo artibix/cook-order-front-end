@@ -40,7 +40,9 @@ wepy.app({
       'pages/auth/login',
       'pages/auth/register',
       'pages/recipe',
-      'pages/add_recipe'
+      'pages/add_recipe',
+      'pages/add_ingredient',
+      'pages/update_ingredient',
     ],
     window: {
       backgroundTextStyle: 'light',
