@@ -43,6 +43,8 @@ wepy.app({
       'pages/add_recipe',
       'pages/add_ingredient',
       'pages/update_ingredient',
+      'pages/settle_ingredient',
+      'pages/order',
     ],
     window: {
       backgroundTextStyle: 'light',

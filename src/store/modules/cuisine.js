@@ -29,16 +29,24 @@ const actions = {
     const recipesResouce = await getRecipes()
     let cuisineList = []
     // TODO: 尽量不要修改数据结构
-    cuisineList.push({
-      id: 0,
-      name: '全部',
-      active: true,
-      recipes: recipesResouce.data
-    })
+    // cuisineList.push({
+    //   id: 0,
+    //   name: '全部',
+    //   active: true,
+    //   recipes: recipesResouce.data
+    // })
     for (let cuisine of cuisinesResouce.data) {
       const recipes = recipesResouce.data.filter(item => item.cuisine_id === cuisine.id);
+      // count 记录选择的菜谱
+      recipes.forEach(recipe => {
+        recipe.count = 0;
+      });
       cuisine.recipes = recipes || []
       cuisineList.push(cuisine)
+    }
+    // 给第一个菜系添加 avtive=true，让他高亮
+    if (cuisineList.length != 0) {
+      cuisineList[0].active = true
     }
     commit('setCuisineList', cuisineList)
   },

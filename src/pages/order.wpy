@@ -1,0 +1,130 @@
+<style lang="less">
+.table-container {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 28rpx;
+}
+
+.head {
+    background-color: #f5f5f5;
+}
+
+.column {
+    text-align: center;
+    line-height: 100rpx
+}
+
+.data-row {
+    background-color: #fff;
+}
+
+/* 去掉第一列左边框 */
+.column:first-child {
+    border-left: none;
+}
+
+/* 去掉最后一列右边框 */
+.column:last-child {
+    border-right: none;
+}
+
+.fixed-button {
+  position: fixed;
+  bottom: 20px; /* 位置可以根据需要进行调整 */
+  right: 20px; /* 位置可以根据需要进行调整 */
+}
+
+</style>
+
+<template>
+
+  <view v-if="!isLoggedIn">
+    请先登录
+  </view>
+  <view v-else class="table-container">
+    <van-row class="head">
+        <van-col span="6" class="column">名称</van-col>
+        <van-col span="6" class="column">备注</van-col>
+        <van-col span="12" class="column">添加日期</van-col>
+    </van-row>
+
+    <!-- 示例数据 -->
+    <van-swipe-cell
+      class="data-row"
+      v-for="(order, idx) in orderList"
+      right-width="{{ 130 }}"
+    >
+      <van-row>
+          <van-col span="6" class="column">{{ order.name }}</van-col>
+          <van-col span="6" class="column">{{ order.detail }}</van-col>
+          <van-col span="12" class="column">{{ order.updated_at }}</van-col>
+      </van-row>
+      <view slot="right" class="van-swipe-cell__right">
+        <van-button type="primary" bind:click="updatePantry(ingredient.ingredient_id)">修改</van-button>
+        <van-button type="danger" bind:click="deletePantry(ingredient.ingredient_id)">删除</van-button>
+      </view>
+    </van-swipe-cell>
+  </view>
+
+</template>
+
+<script>
+  import wepy from '@wepy/core'
+  import store from '@/store'
+  import { mapGetters } from '@wepy/x'
+  import { destoryPantry } from '@/api/pantry'
+
+
+  wepy.page({
+    store,
+    async onShow() {
+      if (!this.isLoggedIn || this.orderList.length) return
+
+      try {
+        await this.$store.dispatch('getOrders')
+      } catch (err) {
+        console.error(err)
+      }
+    },
+    computed: {
+      ...mapGetters(['isLoggedIn', 'orderList'])
+    },
+
+    methods: {
+    //   async deletePantry (ingredient_id) {
+    //     console.log(ingredient_id)
+    //     try {
+    //       await destoryPantry(ingredient_id)
+    //       await this.$store.dispatch('getPantries')
+    //     } catch (error) {
+
+    //     }
+    //   },
+    //   addIngredient () {
+    //     wx.navigateTo({
+    //       url: '/pages/add_ingredient'
+    //     });
+    //   },
+    //   updatePantry (ingredient_id) {
+    //     wx.navigateTo({
+    //       url: '/pages/update_ingredient?ingredient_id=' + ingredient_id
+    //     })
+    //   },
+    }
+  })
+
+</script>
+
+<config>
+{
+  navigationBarTitleText: '订单',
+  "usingComponents": {
+    "van-row": "module:vant-weapp/dist/row/index",
+    "van-col": "module:vant-weapp/dist/col/index",
+    "van-swipe-cell": "module:vant-weapp/dist/swipe-cell/index",
+    "van-cell-group": "module:vant-weapp/dist/cell-group/index",
+    "van-cell": "module:vant-weapp/dist/cell/index",
+    "van-button": "module:vant-weapp/dist/button/index"
+  }
+}
+</config>

@@ -100,10 +100,19 @@
             <image class="child_image" src="{{ recipe.image_url }}"/>
           </navigator>
           <div class="child_name">{{recipe.name}}</div>
-          <van-stepper value="{{ 1 }}" min="0" data-cuisine-id="{{recipe.cuisine_id}}" data-recipe-id="{{recipe.id}}" bind:change="stepperChange" />
+          <van-stepper
+            integer
+            value="{{ recipe.count }}"
+            min="0"
+            data-cuisine-id="{{recipe.cuisine_id}}"
+            data-recipe-id="{{recipe.id}}"
+            bind:plus="stepperChange($event, action='plus')"
+            bind:minus="stepperChange($event, action='minus')"
+          />
         </view>
       </div>
   </scroll-div>
+
 </div>
 
 <div class="footer">
@@ -111,11 +120,11 @@
     <van-goods-action-icon
       icon="cart-o"
       text="订单"
-      bind:click="onClickIcon"
+      bind:click="clickOrder"
     />
     <van-goods-action-button
       text="结算食材"
-      bind:click="onClickButton"
+      bind:click="settleIngredient"
     />
   </van-goods-action>
 </div>
@@ -149,7 +158,7 @@ wepy.page({
   },
   store,
   computed: {
-    ...mapGetters(['cuisineList','showRecipeList'])
+    ...mapGetters(['cuisineList','showRecipeList', 'isLoggedIn'])
   },
 
   async onLoad() {
@@ -163,6 +172,39 @@ wepy.page({
 
   methods: {
     ...mapMutations(['setCuisineList']),
+    clickOrder () {
+      if (!this.isLoggedIn) {
+        // 跳转到菜单
+        wx.switchTab({
+          url: '/pages/user'
+        })
+        wx.showToast({
+          title: '请先登录',
+          icon: 'error'
+        })
+        return
+      }
+
+      wx.navigateTo({
+        url: '/pages/order'
+      })
+    },
+    settleIngredient () {
+      if (!this.isLoggedIn) {
+        // 跳转到菜单
+        wx.switchTab({
+          url: '/pages/user'
+        })
+        wx.showToast({
+          title: '请先登录',
+          icon: 'error'
+        })
+        return
+      }
+      wx.navigateTo({
+        url: '/pages/settle_ingredient'
+      })
+    },
     search (e) {
       let searchString = e.$wx.detail
       if (searchString === '')
@@ -221,8 +263,21 @@ wepy.page({
         url: '/pages/add_recipe'
       });
     },
-    stepperChange (e) {
-      console.log(e)
+    stepperChange (e, action) {
+      const cuisineId = e.currentTarget.dataset.cuisineId
+      const recipeId = e.currentTarget.dataset.recipeId
+      let targetCuisine = this.cuisineList.find(cuisine => cuisine.id === cuisineId);
+      let targetRecipe = targetCuisine.recipes.find(recipe => recipe.id === recipeId);
+      switch (action) {
+        case 'plus':
+          targetRecipe.count += 1
+          break
+        case 'minus':
+          targetRecipe.count -= 1
+          break
+        default:
+          console.log(e, action)
+      }
     },
     selectCuisine(e) {
       const index = e.currentTarget.id;

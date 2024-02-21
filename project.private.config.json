@@ -8,6 +8,13 @@
     "miniprogram": {
       "list": [
         {
+          "name": "pages/settle_ingredient",
+          "pathName": "pages/settle_ingredient",
+          "query": "",
+          "launchMode": "default",
+          "scene": null
+        },
+        {
           "name": "pages/add_ingredient",
           "pathName": "pages/add_ingredient",
           "query": "",

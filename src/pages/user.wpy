@@ -24,8 +24,8 @@
     <image class="avatar" src="{{user.avatar_url ? user.avatar_url : defaultAvatar }}" mode="aspectFill"></image>
     <span class="nickname">{{user.name ? user.name : '用户名' }}</span>
   </div>
-  <van-cell title="菜谱收藏" size="large" is-link  icon="star-o"/>
-  <van-cell title="材料订单" size="large" is-link  icon="cart-o"/>
+  <van-cell title="菜谱收藏" size="large" is-link icon="star-o"/>
+  <van-cell title="材料订单" size="large" is-link bind:click="clickOrder" icon="cart-o"/>
   <van-cell title="消息" size="large" is-link  icon="chat-o"/>
   <van-cell title="加入家庭" size="large" is-link  icon="manager-o"/>
   <div class="weui-panel weui-panel_access">
@@ -70,6 +70,23 @@
         }
       },
 
+      clickOrder () {
+        if (!this.isLoggedIn) {
+          // 跳转到菜单
+          wx.switchTab({
+            url: '/pages/user'
+          })
+          wx.showToast({
+            title: '请先登录',
+            icon: 'error'
+          })
+          return
+        }
+
+        wx.navigateTo({
+          url: '/pages/order'
+        })
+      }
     }
   })
 </script>

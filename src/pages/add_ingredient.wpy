@@ -53,7 +53,6 @@
                 return
             }
             let ingredient = this.ingredientList.find(ingredient => ingredient.name === this.ingredientName);
-            console.log(ingredient)
             if (ingredient === undefined) {
                 try {
                     const ingredientRes = await putIngredient(this.ingredientName)

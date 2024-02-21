@@ -1,0 +1,196 @@
+<style>
+.ingredients {
+  display: flex;
+  justify-content: space-between; /* 将子元素分散对齐，可以根据需要调整 */
+  align-items: center; /* 垂直居中对齐，可以根据需要调整 */
+  /* 其他样式，根据需要调整 */
+}
+
+.ingredient_name,
+.ingredient_g {
+  /* 可以根据需要设置 .ingredient_name 和 .ingredient_g 的样式 */
+  flex: 1; /* 设置子元素平均分配剩余空间，使两个元素宽度相等 */
+  margin-right: 10px; /* 可以根据需要设置子元素之间的间距 */
+}
+
+.add-ingredient {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20rpx
+}
+</style>
+
+<template>
+  <view>
+    <view v-for="(recipe, idx) in doRecipeList">
+      <view>{{ recipe.name }}</view>
+      <image src="{{ recipe.image_url }}" style="width: 100px; height: 100px;"></image>
+      <view>需要的食材：</view>
+      <view v-for="(ingredient, idx) in recipe.ingredientList">
+        <text>{{ ingredient.name }} {{ ingredient.detail }} </text>
+        <text style="color: {{ ingredient.isInPantry ? 'black' : 'red' }}">
+           库存信息： {{ ingredient.isInPantry ? ingredient.pantryDetail : 'Not in Pantry' }}
+        </text>
+      </view>
+    </view>
+  </view>
+
+
+  <view class="ingredients" v-for="(item, index) in orderIngredientList" :key="index">
+    <van-field
+      class="ingredient_name"
+      value="{{ item.name }}"
+      bind:change="handleIngredientChange(index, $event)"
+      label="材料"
+      placeholder="名称"
+      autosize
+    />
+    <van-field
+      class="ingredient_g"
+      value="{{ item.detail }}"
+      label="备注"
+      type="number"
+      bind:change="ingredientDetailChange(index, $event)"
+      placeholder="备注"
+      autosize
+    />
+  </view>
+
+  <view class="add-ingredient">
+    <van-button type="default" bind:click="addIngredient">添加材料</van-button>
+  </view>
+
+  <van-button type="primary" bind:click="createOrder" size="large">创建订单</van-button>
+
+</template>
+
+<script>
+import wepy from '@wepy/core';
+import store from '@/store'
+import { mapMutations, mapGetters } from '@wepy/x'
+import { getRecipeIngredients } from '@/api/recipe'
+import { putOrder } from '@/api/order'
+import { putIngredient } from '@/api/ingredient'
+
+wepy.page({
+  store,
+
+  data: {
+    doRecipeList: [],
+    orderIngredientList: [{name: '', detail: ''}],
+  },
+
+  computed: {
+    ...mapGetters(['ingredientList', 'pantryList', 'cuisineList', 'isLoggedIn'])
+  },
+
+  async onShow() {
+    if (!this.isLoggedIn) return
+
+    if (!this.pantryList.length) {
+      try {
+        await this.$store.dispatch('getPantries')
+      } catch (err) {
+        console.error(err)
+      }
+    }
+    if (!this.ingredientList.length) {
+      try {
+        await this.$store.dispatch('getIngredients')
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+    if (!this.doRecipeList.length) {
+      if (!this.cuisineList.length) return
+      let doRecipeList = this.cuisineList.flatMap(cuisine => {
+        return cuisine.recipes.filter(recipe => recipe.count !== 0);
+      });
+
+      // 添加菜谱所需食材
+      for (let recipe of doRecipeList) {
+        try {
+          const res = await getRecipeIngredients(recipe.id)
+          recipe.ingredientList = res.data
+
+          // 添加食材是否在库存的相关信息
+          for (let ingredient of recipe.ingredientList) {
+            ingredient.isInPantry = this.pantryList.some(item => {
+              if (item.ingredient_id === ingredient.id) {
+                ingredient.pantryDetail = item.detail
+                return true
+              }
+            })
+          }
+        } catch (error) {
+          console.log(error)
+        }
+      }
+      // ！这里赋值是防止后续修改和视图不同步
+      this.doRecipeList = doRecipeList
+    }
+
+  },
+  methods: {
+    handleIngredientChange (index, e) {
+      this.orderIngredientList[index].name = e.$wx.detail;
+    },
+    ingredientDetailChange (index, e) {
+      this.orderIngredientList[index].detail = e.$wx.detail
+    },
+    addIngredient () {
+      this.orderIngredientList.push({name: '', detail: ''})
+    },
+    async createOrder () {
+      if (!this.isLoggedIn) {
+        // 跳转到菜单
+        wx.switchTab({
+          url: '/pages/user'
+        })
+        wx.showToast({
+          title: '请先登录',
+          icon: 'error'
+        })
+        return
+      }
+      try {
+        for (const ingredient of this.orderIngredientList) {
+          console.log(this.ingredientList)
+          const ingredientObj = this.ingredientList.find(item => item.name === ingredient.name);
+          let ingredientId = 0
+          if (ingredientObj === undefined) {
+            const ingredientRes = await putIngredient(ingredient.name)
+            ingredientId = ingredientRes.data.id
+          } else {
+            console.log(ingredientObj, ingredientObj.id)
+            ingredientId = ingredientObj.id
+          }
+          await putOrder(ingredientId, ingredient.detail);
+        }
+
+        // 跳转到菜单
+        wx.switchTab({
+          url: '/pages/meau'
+        })
+        wx.showToast({
+          title: '创建成功',
+          icon: 'success'
+        })
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  }
+})
+</script>
+
+<config>
+{
+  navigationBarTitleText: '结算食材',
+  "usingComponents": {
+    "van-field": "module:vant-weapp/dist/field/index",
+    "van-button": "module:@vant/weapp/dist/button/index"
+  }
+}
